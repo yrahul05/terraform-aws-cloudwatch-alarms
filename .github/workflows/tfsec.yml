@@ -7,36 +7,27 @@ on:
 
 jobs:
   tfsec:
-    name: tfsec sarif report
+    name: Terraform tfsec scan
     runs-on: ubuntu-latest
 
     steps:
-      - name: Clone repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Run tfsec and generate SARIF
+        id: tfsec
         uses: aquasecurity/tfsec-sarif-action@v0.1.4
         with:
           sarif_file: tfsec.sarif
           full_repo_scan: true
 
-      # Upload SARIF to GitHub Code Scanning
-      - name: Upload SARIF to GitHub Security
+      - name: Upload SARIF to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: tfsec.sarif
 
-      - name: PR Commenter (tfsec)
+      - name: PR comment with tfsec findings
         if: github.event_name == 'pull_request'
         uses: tfsec/tfsec-pr-commenter-action@v1.3.1
         with:
           GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Terraform security scan Advanced
-        if: github.event_name == 'pull_request'
-        uses: triat/terraform-security-scan@v3.1.0
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          tfsec_actions_comment: true
-          tfsec_output_format: sarif
-        continue-on-error: true
