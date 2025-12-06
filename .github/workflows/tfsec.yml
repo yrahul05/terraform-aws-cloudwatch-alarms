@@ -17,7 +17,12 @@ jobs:
         uses: aquasecurity/tfsec-sarif-action@v0.1.4
         with:
           sarif_file: tfsec.sarif
-          full_repo_scan: true
+          full_repo_scan: false          # this avoids --force-all-dirs
+          working_directory: .           # change if your Terraform is in a subfolder
+          tfsec_args: >
+            --exclude-dir .terraform
+            --exclude-dir examples
+            --exclude-dir _example
 
       - name: Upload SARIF to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
