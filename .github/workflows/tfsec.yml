@@ -13,7 +13,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run tfsec manually using Docker
+      - name: Run tfsec using Docker
         run: |
           docker run --rm \
             -v "$(pwd)":/src \
@@ -21,12 +21,15 @@ jobs:
             /src \
             --soft-fail \
             --format sarif \
-            --out tfsec.sarif \
+            --out /tmp/tfsec.sarif \
             --exclude-path .terraform \
             --exclude-path examples \
             --exclude-path _example
 
-      - name: Upload SARIF to GitHub
+          # Copy SARIF from container tmp to workspace
+          docker cp $(docker create aquasec/tfsec:latest):/tmp/tfsec.sarif tfsec.sarif || true
+
+      - name: Upload SARIF to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: tfsec.sarif
